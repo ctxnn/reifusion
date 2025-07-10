@@ -16,7 +16,7 @@ class VAE_attentionblock(nn.Module):
         x = self.groupnorm(x)
         n, c, h, w = x.shape
         x = x.view(n, c, h * w) 
-        x = x.transpose(1, 2)  # B, H*W, in_channels
+        x = x.transpose(1, 2)  # B, H*W, in_channels (to make attention work across spatial positions rather than channels)
         x = self.attention(x)  # B, H*W, in_channels
         x = x.transpose(1, 2)  # B, in_channels, H
         x = x.view(n, c, h, w)  # B, in_channels, H, W
@@ -58,3 +58,49 @@ class VAE_residualblock(nn.Module):
         x = self.conv2(x)
         return x + self.skip(residue)
           
+class VAE_Decoder(nn.Sequential):
+    def __init__(self):
+        # Input: (B, 4, H/8, W/8)
+        super().__init__(
+            nn.Conv2d(4, 4, kernel_size=1, padding=0), # (B, 4, H/8, W/8)
+            nn.Conv2d(4, 512, kernel_size=3, padding=1), # (B, 512, H/8, W/8)
+            VAE_residualblock(512, 512), # (B, 512, H/8, W/8)
+            VAE_attentionblock(512), # (B, 512, H/8, W/8)
+            VAE_residualblock(512, 512), # (B, 512, H/8, W/8)
+            VAE_residualblock(512, 512), # (B, 512, H/8, W/8)
+            VAE_residualblock(512, 512), # (B, 512, H/8, W/8)
+            VAE_residualblock(512, 512), # (B, 512, H/8, W/8)
+            
+            nn.Upsample(scale_factor=2), # (B, 512, H/4, W/4)
+            nn.Conv2d(512, 512, kernel_size=3, padding=1), # (B, 512, H/4, W/4)
+            VAE_residualblock(512, 512), # (B, 512, H/4, W/4)
+            VAE_residualblock(512, 512), # (B, 512, H/4, W/4)
+            VAE_residualblock(512, 512), # (B, 512, H/4, W/4)
+            
+            # repeats the rows and columns of the data by scale_factor (like when you resize an image by doubling its size)
+            nn.Upsample(scale_factor=2), # (B, 512, H/2, W/2)
+            nn.Conv2d(512, 512, kernel_size=3, padding=1), # (B, 512, H/2, W/2)
+            VAE_residualblock(512, 256), # (B, 256, H/2, W/2)
+            VAE_residualblock(256, 256), # (B, 256, H/2, W/2)
+            VAE_residualblock(256, 256), # (B, 256, H/2, W/2)
+            
+            nn.Upsample(scale_factor=2), # (B, 256, H, W)
+            nn.Conv2d(256, 256, kernel_size=3, padding=1), # (B, 256, H, W)
+            VAE_residualblock(256, 128), # (B, 128, H, W)
+            VAE_residualblock(128, 128), # (B, 128, H, W)
+            VAE_residualblock(128, 128), # (B, 128, H, W)
+            
+            nn.GroupNorm(32, 128), # (B, 128, H, W)
+            nn.SiLU(), # (B, 128, H, W)
+            nn.Conv2d(128, 3, kernel_size=3, padding=1), # (B, 3, H, W)
+        )
+        
+    def forward(self, x):
+        # x: B, 4, H/8, W/8 
+        
+        x /= 0.18215 
+        
+        for module in self: 
+            x = module(x) 
+            
+        return x # B, 3, H, W
