@@ -9,7 +9,7 @@ class VAE_attentionblock(nn.Module):
     def __init__(self, in_channels):
         super().__init__()
         self.groupnorm = nn.GroupNorm(32, in_channels)
-        self.attention = SelfAttention(in_channels)  # B, in_channels, H, W
+        self.attention = SelfAttention(1, in_channels)  # B, in_channels, H, W
                 
     def forward(self, x):
         residue = x  # B, in_channels, H, W
