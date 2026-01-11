@@ -150,7 +150,7 @@ pip install torch numpy tqdm Pillow
 ---
 
 thanks to 
-- [umar jamil] for helping my understand the code behind the stable diffusion(https://www.youtube.com/watch?v=ZBKpAp_6TGI)
-- [isaac bautista] for helping my understand the logical math and intuition behind diffusion(https://www.youtube.com/watch?v=hRi3ouF1vqY)
+- [umar jamil](https://www.youtube.com/watch?v=ZBKpAp_6TGI) for helping my understand the code behind the stable diffusion
+- [isaac bautista](https://www.youtube.com/watch?v=hRi3ouF1vqY) for helping my understand the logical math and intuition behind diffusion
 
 *This project is for educational purposes to understand the internals of Stable Diffusion.*
