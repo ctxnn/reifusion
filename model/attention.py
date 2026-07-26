@@ -11,7 +11,7 @@ class SelfAttention(nn.Module):
         self.in_proj = nn.Linear(d_embed, d_embed * 3, bias=in_proj_bias)  # B, L, 3 * d_embed
         self.out_proj = nn.Linear(d_embed, d_embed, bias=out_proj_bias)
         self.n_heads = n_heads
-        self.d_ehead = d_embed // n_heads
+        self.d_head = d_embed // n_heads
 
     def forward(self, x, causal_mask=False):
         # x: B, L, d_embed

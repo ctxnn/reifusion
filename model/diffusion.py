@@ -1,19 +1,19 @@
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
-from attention import SelfAttention, CrossAttention 
+from .attention import SelfAttention, CrossAttention 
 
 
 class TimeEmbedding(nn.Module):
     def __init__(self, n_embd):
         super().__init__()
-        self.linear1 = nn.Linear(n_embd, n_embd * 4)
-        self.linear2 = nn.Linear(n_embd * 4, n_embd * 4) # thats why the dimension is 1280 
+        self.linear_1 = nn.Linear(n_embd, n_embd * 4)
+        self.linear_2 = nn.Linear(n_embd * 4, n_embd * 4) # thats why the dimension is 1280 
         
     def forward(self, x):
-        x = self.linear1(x)  # B, 320 -> B, 1280
+        x = self.linear_1(x)  # B, 320 -> B, 1280
         x = F.silu(x)  # B, 1280
-        x = self.linear2(x)  # B, 1280 -> B, 1280
+        x = self.linear_2(x)  # B, 1280 -> B, 1280
         return x  # B, 1280 
 
 class Unet_AttentionBlock(nn.Module):

@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from decoder import VAE_attentionblock, VAE_residualblock
+from .decoder import VAE_attentionblock, VAE_residualblock
 
 class VAE_Encoder(nn.Sequential):
     def __init__(self):
@@ -25,7 +25,7 @@ class VAE_Encoder(nn.Sequential):
             nn.GroupNorm(32, 512),  # B, 512, H/8, W/8
             nn.SiLU(),  # B, 512, H/8, W/8
             nn.Conv2d(512, 8, kernel_size=3, stride=1, padding=1),  # B, 8, H/8, W/8
-            nn.Conv2d(8, 8, kernel_size=3, stride=1, padding=1),  # B, 8, H/8, W/8
+            nn.Conv2d(8, 8, kernel_size=1, stride=1, padding=0),  # B, 8, H/8, W/8
         ) 
         
     def forward(self, x, noise):

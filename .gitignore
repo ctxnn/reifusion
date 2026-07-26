@@ -1,0 +1,13 @@
+# macOS metadata
+.DS_Store
+
+# Codebase-memory generated artifacts
+.codebase-memory/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Python caches and compiled files
+__pycache__/
+*.py[cod]
+*$py.class

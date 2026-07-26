@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from tqdm import tqdm
-from ddpm import DDPMSampler
+from .ddpm import DDPMSampler
 
 WIDTH = 512
 HEIGHT = 512
@@ -30,13 +30,23 @@ def generate(prompt, uncond_prompt=None, input_image=None, strength=0.8, do_cfg=
         
         if do_cfg:
             # Convert into a list of length Seq_Len=77
-            cond_tokens = tokenizer.batch_encode_plus([prompt], padding="max_length", max_length=77).input_ids
+            cond_tokens = tokenizer(
+                [prompt],
+                padding="max_length",
+                max_length=77,
+                truncation=True,
+            ).input_ids
             # (Batch_Size, Seq_Len)
             cond_tokens = torch.tensor(cond_tokens, dtype=torch.long, device=device)
             # (Batch_Size, Seq_Len) -> (Batch_Size, Seq_Len, Dim)
             cond_context = clip(cond_tokens)
             # Convert into a list of length Seq_Len=77
-            uncond_tokens = tokenizer.batch_encode_plus([uncond_prompt], padding="max_length", max_length=77).input_ids
+            uncond_tokens = tokenizer(
+                [uncond_prompt],
+                padding="max_length",
+                max_length=77,
+                truncation=True,
+            ).input_ids
             # (Batch_Size, Seq_Len)
             uncond_tokens = torch.tensor(uncond_tokens, dtype=torch.long, device=device)
             # (Batch_Size, Seq_Len) -> (Batch_Size, Seq_Len, Dim)
@@ -45,7 +55,12 @@ def generate(prompt, uncond_prompt=None, input_image=None, strength=0.8, do_cfg=
             context = torch.cat([cond_context, uncond_context])
         else:
             # Convert into a list of length Seq_Len=77
-            tokens = tokenizer.batch_encode_plus([prompt], padding="max_length", max_length=77).input_ids
+            tokens = tokenizer(
+                [prompt],
+                padding="max_length",
+                max_length=77,
+                truncation=True,
+            ).input_ids
             # (Batch_Size, Seq_Len)
             tokens = torch.tensor(tokens, dtype=torch.long, device=device)
             # (Batch_Size, Seq_Len) -> (Batch_Size, Seq_Len, Dim)

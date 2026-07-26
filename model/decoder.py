@@ -3,7 +3,7 @@
 import torch
 import torch.nn as nn   
 import torch.nn.functional as F 
-from attention import SelfAttention
+from .attention import SelfAttention
 
 class VAE_attentionblock(nn.Module):    
     def __init__(self, in_channels):
@@ -27,10 +27,10 @@ class VAE_residualblock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.groupnorm1 = nn.GroupNorm(32, in_channels)
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0) # B, out_channels, H, W
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1) # B, out_channels, H, W
         
         self.groupnorm2 = nn.GroupNorm(32, out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=0) # B, out_channels, H, W 
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1) # B, out_channels, H, W
         
         if in_channels != out_channels:
                 # if the channel counts don't match, we can't directly add the two tensors.

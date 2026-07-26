@@ -4,6 +4,14 @@
 
 This codebase implements the core components of Stable Diffusion from scratch (mostly), including the VAE, U-Net, CLIP text encoder, and the DDPM scheduler.
 
+## What This Project Covers
+
+- How text is converted into conditioning vectors with CLIP.
+- How diffusion happens in a compressed latent space instead of pixel space.
+- How the U-Net predicts noise and the scheduler removes it step by step.
+- How standard Stable Diffusion weights are converted into the model classes in `model/`.
+- How the pieces are connected together for text-to-image and image-to-image generation.
+
 ## High-Level Architecture
 
 The generation process involves the interplay of several neural networks.
@@ -109,6 +117,10 @@ The conductor that orchestrates the entire show.
         -   Updates latents using the Scheduler.
     4.  **Decoding**: Passes the final latents through the VAE Decoder to get the result.
 
+The complete path is therefore:
+
+`prompt -> tokens -> CLIP embeddings -> noisy latents -> U-Net + CFG -> denoised latents -> VAE decoder -> image`
+
 ---
 
 ## Project Structure
@@ -124,27 +136,54 @@ reifusion/
 │   ├── encoder.py     # VAE Encoder (Pixel -> Latent)
 │   ├── pipeline.py    # Main generation loop
 │   ├── model_loader.py # Weights loading utility
-│   └── model_converter.py
+│   ├── model_converter.py # Converts Stable Diffusion checkpoint keys
+│   └── demo.ipynb      # Notebook for running the generator
 ├── data/              # Tokenizer vocabulary files
 ├── images/            # Output directory
-└── demo.ipynb         # Jupyter notebook to run the generator
+└── README.md
 ```
 
 ## Getting Started
 
 ### Data Files
-Ensure you have the model weights and tokenizer data. The code expects a specific dictionary of weights loaded into the `models` dict in `pipeline.py`.
+Ensure you have the tokenizer data in `data/` (`vocab.json` and `merges.txt`). The notebook downloads the Stable Diffusion checkpoint on first use, or you can place a compatible `.safetensors` file in `data/` yourself. The model weights are intentionally not included in this repository because the checkpoint is several gigabytes in size.
+
+### Setup
+
+Create an environment and install the packages used by the notebook:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install torch numpy tqdm Pillow transformers huggingface_hub safetensors
+```
 
 ### Running the Demo
-Open `demo.ipynb`. It is set up to:
+Open `model/demo.ipynb`. It is set up to:
 1.  Load the tokenizer and model weights.
 2.  Set a text prompt (e.g., "A cat stretching on the floor").
 3.  Run the inference loop.
-4.  Display the generated image.
+4.  Display the generated image and save it to `images/generated.png`.
+
+For practical inference, use a CUDA-enabled GPU (a Colab T4 is sufficient). On a CPU, the same code can be used for learning, but generation will take considerably longer.
+
+Example output from the demo:
+
+![Generated image: a cat stretching on the floor](images/generated.png)
+
+Prompt: *"A cat stretching on the floor, highly detailed, ultra sharp, cinematic, 100mm lens, 8k resolution."*
+
+### Image-to-Image
+
+The pipeline can also start from an input image. The image is encoded into the latent space, noise is added according to the selected `strength`, and the normal denoising loop is then run with the text prompt as guidance.
+
+### Reproducibility
+
+Pass a fixed `seed` to `generate()` when you want to compare changes in the implementation. Changing the prompt, guidance scale, number of inference steps, or image-to-image strength will change the result.
 
 ### Dependencies
 ```bash
-pip install torch numpy tqdm Pillow
+pip install torch numpy tqdm Pillow transformers huggingface_hub safetensors
 ```
 
 ---

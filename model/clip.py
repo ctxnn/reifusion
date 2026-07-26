@@ -1,7 +1,7 @@
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
-from attention import SelfAttention
+from .attention import SelfAttention
 
 class CLIPEmbedding(nn.Module):
     def __init__(self, n_vocab, n_embd, n_tokens):
@@ -18,28 +18,28 @@ class CLIPEmbedding(nn.Module):
 class CLIPLayer(nn.Module):
     def __init__(self, n_head, n_embd):
         super().__init__()
-        self.layernorm1 = nn.LayerNorm(n_embd)
+        self.layernorm_1 = nn.LayerNorm(n_embd)
         self.attention = SelfAttention(n_head, n_embd)
-        self.layernorm2 = nn.LayerNorm(n_embd)
-        self.linear1 = nn.Linear(n_embd, 4 * n_embd)
-        self.linear2 = nn.Linear(4 * n_embd, n_embd)
+        self.layernorm_2 = nn.LayerNorm(n_embd)
+        self.linear_1 = nn.Linear(n_embd, 4 * n_embd)
+        self.linear_2 = nn.Linear(4 * n_embd, n_embd)
 
 
     def forward(self, x):
         # B, L, D = x.shape
 
         residue = x
-        x = self.layernorm1(x)  # layer normalization
-        attn_output = self.attention(x, casual_mask=True)  # (B, L, D)
+        x = self.layernorm_1(x)  # layer normalization
+        x = self.attention(x, causal_mask=True)  # (B, L, D)
         x += residue  # residual connection
         
         residue = x
-        x = self.layernorm2(x)  # layer normalization
+        x = self.layernorm_2(x)  # layer normalization
 
         # Feed-forward network
-        x = self.linear1(x)  # (B, L, 4D)
+        x = self.linear_1(x)  # (B, L, 4D)
         x = x * torch.sigmoid(1.702 * x)  # quick gelu activation
-        x = self.linear2(x)  # (B, L, D)
+        x = self.linear_2(x)  # (B, L, D)
         x += residue  # residual connection
         return x
 
