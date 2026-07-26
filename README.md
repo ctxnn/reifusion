@@ -1,4 +1,4 @@
-# reifusion: A Deep Dive into Stable Diffusion
+# reifusion: a deep dive into stable diffusion
 
 **reifusion** is a pedagogical implementation of a Stable Diffusion pipeline, designed to peel back the layers of abstraction found in production libraries like `diffusers`. This project is optimised for **learning**. It breaks down the complex architecture of Latent Diffusion Models (LDMs) into understandable components, providing a clear mapping between the mathematical theory and the PyTorch implementation.
 
@@ -30,6 +30,23 @@ graph TD
     UNet -->|Final Latents| VAD[VAE Decoder]
     VAD -->|Pixel Space| Image([Generated Image])
 ```
+
+---
+
+### Running the Demo
+Open `model/demo.ipynb`. It is set up to:
+1.  Load the tokenizer and model weights.
+2.  Set a text prompt (e.g., "A cat stretching on the floor").
+3.  Run the inference loop.
+4.  Display the generated image and save it to `images/generated.png`.
+
+For practical inference, use a CUDA-enabled GPU (a Colab T4 is sufficient). On a CPU, the same code can be used for learning, but generation will take considerably longer.
+
+Example output from the demo:
+
+![Generated image: a cat stretching on the floor](images/generated.png)
+
+Prompt: *"A cat stretching on the floor, highly detailed, ultra sharp, cinematic, 100mm lens, 8k resolution."*
 
 ---
 
@@ -157,21 +174,6 @@ python -m venv .venv
 source .venv/bin/activate
 pip install torch numpy tqdm Pillow transformers huggingface_hub safetensors
 ```
-
-### Running the Demo
-Open `model/demo.ipynb`. It is set up to:
-1.  Load the tokenizer and model weights.
-2.  Set a text prompt (e.g., "A cat stretching on the floor").
-3.  Run the inference loop.
-4.  Display the generated image and save it to `images/generated.png`.
-
-For practical inference, use a CUDA-enabled GPU (a Colab T4 is sufficient). On a CPU, the same code can be used for learning, but generation will take considerably longer.
-
-Example output from the demo:
-
-![Generated image: a cat stretching on the floor](images/generated.png)
-
-Prompt: *"A cat stretching on the floor, highly detailed, ultra sharp, cinematic, 100mm lens, 8k resolution."*
 
 ### Image-to-Image
 
