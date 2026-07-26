@@ -112,8 +112,8 @@ The core formula is **Scaled Dot-Product Attention**:
 
 ```math
 \begin{aligned}
-\operatorname{Attention}(Q, K, V)
-&= \operatorname{softmax}\!\left(
+\mathrm{Attention}(Q, K, V)
+&= \mathrm{softmax}\!\left(
     \frac{QK^{\mathsf{T}}}{\sqrt{d_k}}
   \right)V
 \end{aligned}
