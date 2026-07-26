@@ -58,7 +58,14 @@ Stable Diffusion is a **Latent Diffusion Model (LDM)**. This means the diffusion
 The VAE compresses an image $x$ into a latent representation $z = \mathcal{E}(x)$ and reconstructs it $\hat{x} = \mathcal{D}(z)$. 
 
 In the encoder (`model/encoder.py`), we use the **Reparameterization Trick** to sample from the learned distribution:
-$$z = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)$$
+
+```math
+\begin{aligned}
+z &= \mu + \sigma \odot \epsilon, \\
+\epsilon &\sim \mathcal{N}(0, I)
+\end{aligned}
+```
+
 Where $\mu$ is the mean and $\sigma$ is the standard deviation (derived from the log-variance). This makes the sampling process differentiable.
 
 ### 2. Diffusion Probabilistic Models (DDPM)
@@ -66,19 +73,51 @@ Diffusion models define a forward process (adding noise) and a reverse process (
 
 **Forward Process ($q$)**:
 We gradually add Gaussian noise to a clean image $x_0$ over $T$ steps. At any timestep $t$, we can sample $x_t$ directly:
-$$q(x_t | x_0) = \mathcal{N}(x_t; \sqrt{\bar{\alpha}_t} x_0, (1 - \bar{\alpha}_t)I)$$
+
+```math
+\begin{aligned}
+q(x_t \mid x_0)
+&= \mathcal{N}\!\left(
+    x_t;
+    \sqrt{\bar{\alpha}_t}\,x_0,
+    (1 - \bar{\alpha}_t)I
+  \right)
+\end{aligned}
+```
+
 where $\bar{\alpha}_t$ is the cumulative product of $\alpha_t = 1 - \beta_t$, and $\beta_t$ is the basic noise variance schedule. You can see this implemented in `model/ddpm.py`'s `add_noise` method.
 
 **Reverse Process ($p_\theta$)**:
 We train a neural network $\epsilon_\theta(x_t, t)$ (the U-Net) to approximate the noise added at that step. The denoising step is:
-$$x_{t-1} = \frac{1}{\sqrt{\alpha_t}} \left( x_t - \frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \epsilon_\theta(x_t, t) \right) + \sigma_t z$$
+
+```math
+\begin{aligned}
+x_{t-1}
+&= \frac{1}{\sqrt{\alpha_t}}
+   \left(
+     x_t
+     - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}}
+       \,\epsilon_\theta(x_t, t)
+   \right) \\
+&\quad + \sigma_t z
+\end{aligned}
+```
+
 This logic is the core of `DDPMSampler.step`.
 
 ### 3. Attention Mechanism
 The U-Net uses both **Self-Attention** (spatial context) and **Cross-Attention** (text conditioning).
 
 The core formula is **Scaled Dot-Product Attention**:
-$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+
+```math
+\begin{aligned}
+\operatorname{Attention}(Q, K, V)
+&= \operatorname{softmax}\!\left(
+    \frac{QK^{\mathsf{T}}}{\sqrt{d_k}}
+  \right)V
+\end{aligned}
+```
 
 - **Q (Query)**: What I am looking for? (From image features)
 - **K (Key)**: What do I have? (From image features for Self-Attention, from Text Prompts for Cross-Attention)
@@ -86,7 +125,18 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)
 
 ### 4. Classifier-Free Guidance (CFG)
 To force the model to follow the prompt more strictly, we perform two forward passes: one with the prompt ($\epsilon_{cond}$) and one without ($\epsilon_{uncond}$). We then extrapolate:
-$$\epsilon_{pred} = \epsilon_{uncond} + s \cdot (\epsilon_{cond} - \epsilon_{uncond})$$
+
+```math
+\begin{aligned}
+\epsilon_{\text{pred}}
+&= \epsilon_{\text{uncond}}
+  + s\left(
+      \epsilon_{\text{cond}}
+      - \epsilon_{\text{uncond}}
+    \right)
+\end{aligned}
+```
+
 where $s$ is the guidance scale (typically 7.5). This pushes the result away from the "generic" image towards the "prompt-specific" image.
 
 ---
